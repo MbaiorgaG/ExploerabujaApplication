@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(exported = false)
-public interface TourRatingRepository extends CrudRepository<TourRating, TourRatingPk> {
+public interface TourRatingRepository extends CrudRepository<TourRating, String> {
     /**
      *
      * @param tourId
      * @return
      */
-    List<TourRating> findByPkTourId(Integer tourId);
+    List<TourRating> findByTourId(String tourId);
 
     /**
      *
@@ -25,7 +25,7 @@ public interface TourRatingRepository extends CrudRepository<TourRating, TourRat
      * @param customerId
      * @return
      */
-    Optional<TourRating> findByPkTourIdAndPkCustomerId(Integer tourId, Integer customerId);
+    Optional<TourRating> findByTourIdAndCustomerId(String tourId, Integer customerId);
 
     /**
      *
@@ -33,5 +33,5 @@ public interface TourRatingRepository extends CrudRepository<TourRating, TourRat
      * @param pageable
      * @return
      */
-    Page<TourRating> findByPkTourId(Integer tourId, Pageable pageable);
+    Page<TourRating> findByTourId(String tourId, Pageable pageable);
 }

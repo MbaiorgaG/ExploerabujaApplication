@@ -2,23 +2,19 @@ package com.shimadove.exploerabujaapplication;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shimadove.exploerabujaapplication.domain.Difficulty;
-import com.shimadove.exploerabujaapplication.domain.Region;
-import com.shimadove.exploerabujaapplication.domain.Tour;
 import com.shimadove.exploerabujaapplication.service.TourPackageService;
 import com.shimadove.exploerabujaapplication.service.TourService;
-import org.hibernate.type.Type;
-import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.PropertyAccessor.FIELD;
@@ -47,17 +43,21 @@ public class ExploerabujaApplication  implements CommandLineRunner {
     }
 
     private void createTours(String fileToImport) throws IOException{
-        TourFromFile.read(fileToImport).forEach(importedTour ->
-                tourService.createTour(importedTour.getTitle(),
-                        importedTour.getDescription(),
-                        importedTour.getBlurb(),
-                        importedTour.getPrice(),
-                        importedTour.getLength(),
-                        importedTour.getBullets(),
-                        importedTour.getKeywords(),
-                        importedTour.getPackageType(),
-                        importedTour.getDifficulty(),
-                        importedTour.getRegion()));
+//        TourFromFile.read(fileToImport).forEach(importedTour ->
+//                tourService.createTour(importedTour.getTitle(),
+//                        importedTour.getDescription(),
+//                        importedTour.getBlurb(),
+//                        importedTour.getPrice(),
+//                        importedTour.getLength(),
+//                        importedTour.getBullets(),
+//                        importedTour.getKeywords(),
+//                        importedTour.getPackageType(),
+//                        importedTour.getDifficulty(),
+//                        importedTour.getRegion()));
+        TourFromFile.read(fileToImport).forEach(tourFromFile ->
+                tourService.createTour(tourFromFile.getTitle(),
+                        tourFromFile.getPackageName(),
+                        tourFromFile.getDetails()));
     }
 
     private void createTourPackages() {
@@ -76,32 +76,52 @@ public class ExploerabujaApplication  implements CommandLineRunner {
 
     private static class  TourFromFile{
         //Fields
-        private String  packageType, title, description, blurb, price, length,
-                bullets, keywords, difficulty, region;
+        private String  title, packageName;
+        private Map<String, String> details;
+
+        TourFromFile(Map<String, String> record){
+            this.title = record.get("title");
+            this.packageName = record.get("packageType");
+            this.details = record;
+            this.details.remove("packageType");
+            this.details.remove("title");
+        }
 
         static List<TourFromFile> read (String fileToImport)throws IOException{
-            return  new ObjectMapper().setVisibility(FIELD, ANY).
-                    readValue(new FileInputStream(fileToImport),new TypeReference<List<TourFromFile>>() {});
+//            return  new ObjectMapper().setVisibility(FIELD, ANY).
+//                    readValue(new FileInputStream(fileToImport),new TypeReference<List<TourFromFile>>() {});
+            List<Map<String, String>> records = new ObjectMapper().setVisibility(FIELD, ANY).
+                    readValue(new FileInputStream(fileToImport),
+                            new TypeReference<List<Map<String, String>>>() {
+                            });
+            return records.stream().map(TourFromFile::new)
+                    .collect(Collectors.toList());
         }
         protected TourFromFile (){}
 
-        String getPackageType(){return packageType;}
-        String getTitle(){return title;}
-        String getDescription() { return description; }
+        public String getTitle() {
+            return title;
+        }
 
-        String getBlurb() { return blurb; }
+        public void setTitle(String title) {
+            this.title = title;
+        }
 
-        Integer getPrice() { return Integer.parseInt(price); }
+        public String getPackageName() {
+            return packageName;
+        }
 
-        String getLength() { return length; }
+        public void setPackageName(String packageName) {
+            this.packageName = packageName;
+        }
 
-        String getBullets() { return bullets; }
+        public Map<String, String> getDetails() {
+            return details;
+        }
 
-        String getKeywords() { return keywords; }
-
-        Difficulty getDifficulty() { return Difficulty.valueOf(difficulty); }
-
-        Region getRegion() { return Region.findByLable(region); }
+        public void setDetails(Map<String, String> details) {
+            this.details = details;
+        }
     }
 
 }
