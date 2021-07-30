@@ -1,2 +1,3 @@
 # ExploerabujaApplication
-Explore Abuja rest template
+Explore Abuja 
+Explore verious places in the capital city of Nigeria on the go.
